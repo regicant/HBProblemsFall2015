@@ -1,0 +1,89 @@
+#include<iostream>
+#include<string>
+
+using namespace std;
+
+void move(int&, int&, char, bool);
+
+int main()
+{
+	string directions;
+	int pointX = 0;
+	int pointY = 0;
+
+	cout << "Enter directions: ";
+	cin >> directions;
+	cout << "Starting point X: ";
+	cin >> pointX;
+	cout << "Starting point Y: ";
+	cin >> pointY;
+
+	bool invertDirection = false;
+
+	for (int i = 0; i < directions.size(); i++)
+	{
+		if (directions[i] == '~' && !invertDirection)
+		{
+			invertDirection = true;
+		}
+		else if (directions[i] == '~' && invertDirection)
+		{
+			invertDirection = false;
+		}
+		else
+		{
+			move(pointX, pointY, directions[i], invertDirection);
+		}
+	}
+
+	cout << "(" << pointX << ", " << pointY << ")" << endl;
+	system("pause");
+	return 0;
+}
+
+void move(int& currentX, int& currentY, char direction, bool invertDirection)
+{
+	switch (direction)
+	{
+	case '<':
+		if (invertDirection == true)
+		{
+			currentX++;
+		}
+		else
+		{
+			currentX--;
+		}
+		break;
+	case '>':
+		if (invertDirection == true)
+		{
+			currentX--;
+		}
+		else
+		{
+			currentX++;
+		}
+		break;
+	case 'v':
+		if (invertDirection == true)
+		{
+			currentY--;
+		}
+		else
+		{
+			currentY++;
+		}
+		break;
+	case '^':
+		if (invertDirection == true)
+		{
+			currentY++;
+		}
+		else
+		{
+			currentY--;
+		}
+		break;
+	}
+}
