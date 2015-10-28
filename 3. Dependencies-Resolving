@@ -1,0 +1,261 @@
+#include <iostream>
+#include <string>
+#include<vector>
+#include <fstream>
+#include <direct.h>
+
+using namespace std;
+
+//"trim" the keys and values
+string trimValue(string line, int start);
+//get keys and values from the all_packages file
+bool openAllPackages(string packagesPath, vector<string> &keys, vector< vector <string> > &values);
+bool openDependencies(string depPath, const vector<string> &keys, const vector< vector <string> > &values, string folderPath);
+//get dependencies from the all_packages file for a specific key
+vector<string> getDependencies(vector<string> keys, vector< vector<string> > values, string keyWord);
+void installDependencies(vector<string> keys, vector< vector<string> > values, string depToInstall, string folderPath);
+
+int main() 
+{
+	string folderPath;
+	string allPackagesPath;
+
+	cout << "Enter path to folder:";
+	//for example C:\\Users\\User1\\Desktop\\HBProblem3
+	cin >> folderPath;
+	allPackagesPath = folderPath + "\\all_packages.json";
+	
+	vector<string> keys;
+	vector< vector <string> > values;
+	
+	openAllPackages(allPackagesPath, keys, values);
+
+	string dependenciesPath = folderPath + "\\dependencies.json";
+
+	openDependencies(dependenciesPath, keys, values, folderPath);
+
+	system("pause");
+	return 0;
+}
+
+//"trim" the keys and values
+string trimValue(string line, int start)
+{
+	string betterValue;
+	while (line[start] != '"')
+	{
+		betterValue += line[start];
+		start++;
+	}
+	return betterValue;
+}
+
+//get dependencies from the all_packages file for a specific key
+vector<string> getDependencies(vector<string> keys, vector< vector<string> > values, string keyWord)
+{
+	//get this key's index from keys vector
+	int keyWordIndex = 0;
+	for (size_t i = 0; i < keys.size(); i++)
+	{
+		if (keys[i] == keyWord)
+		{
+			keyWordIndex = i;
+			break;
+		}
+	}
+
+	//get a new vector with key's values
+	vector<string> depVector;
+	for (size_t i = 0; i < values[keyWordIndex].size(); i++)
+	{
+		depVector.push_back(values[keyWordIndex][i]);
+	}
+	return depVector;
+}
+
+bool openAllPackages(string packagesPath, vector<string> &keys, vector< vector <string> > &values)
+{
+	string word;
+	string betterKey;
+	string betterValue;
+	vector <string> valuesRow;
+	bool moreValues = false;
+
+	const string N0_VALUES = "NO_VALUES";
+
+	ifstream allPackages(packagesPath, ifstream::in);
+
+	if (allPackages.is_open())
+	{
+		while (allPackages >> word)
+		{
+			if (word != "{" && word != "}" && word != ":" && word != ",")
+			{
+				//check for first value
+				if (word[0] == '[' && word[1] != ']')
+				{
+					string valueToAdd = trimValue(word, 2);
+					valuesRow.push_back(valueToAdd);
+
+					if (word[(valueToAdd.size() + 3)] != ']')
+					{
+						moreValues = true;
+					}
+					else
+					{
+						values.push_back(valuesRow);
+						moreValues = false;
+						valuesRow.clear();
+						continue;
+					}
+				}
+				//check if there are more than 1 values for this key
+				else if (moreValues)
+				{
+					string valueToAdd = trimValue(word, 1);
+					valuesRow.push_back(valueToAdd);
+					if (word[(valueToAdd.size() + 2)] != ']')
+					{
+						moreValues = true;
+					}
+					else
+					{
+						values.push_back(valuesRow);
+						moreValues = false;
+						valuesRow.clear();
+						continue;
+					}
+				}
+				//check if there are no values
+				else if (word[0] == '[' && word[1] == ']')
+				{
+					valuesRow.push_back(N0_VALUES);
+					values.push_back(valuesRow);
+					valuesRow.clear();
+					betterKey.clear();
+				}
+				//must be key then
+				else
+				{
+					betterKey = trimValue(word, 1);
+
+					keys.push_back(betterKey);
+					betterKey.clear();
+				}
+			}
+		}
+		cout << endl;
+		allPackages.close();
+		return true;
+	}
+	else
+	{
+		cout << "Unable to open all packages file" << endl;
+		return false;
+	}
+}
+
+void installDependencies(vector<string> keys, vector< vector<string> > values, string depToInstall, string folderPath)
+{
+	const string N0_VALUES = "NO_VALUES";
+
+	string strPath = folderPath + "\\installed_modules\\" + depToInstall;
+	
+	if (_mkdir(strPath.c_str()) != -1)
+	{
+		cout << "Intalling " << depToInstall << ". " << endl;
+		vector<string> localDependencies = getDependencies(keys, values, depToInstall); //get depToInstall's dependencies
+
+
+		//check if there are dependencies to install
+		if (localDependencies[0] != N0_VALUES)
+		{
+			cout << "In order to install " << depToInstall << ", we need ";
+			for (size_t i = 0; i < localDependencies.size(); i++)
+			{
+				if (i != localDependencies.size() - 1)
+				{
+					cout << localDependencies[i] << ", ";
+				}
+				else
+				{
+					cout << localDependencies[i] << "." << endl;
+				}
+			}
+			for (size_t i = 0; i < localDependencies.size(); i++)
+			{
+				installDependencies(keys, values, localDependencies[i], folderPath);
+			}
+		}
+	}
+	else
+	{
+		cout << depToInstall << " is already installed.";
+	}
+}
+
+bool openDependencies(string depPath, const vector<string> &keys, const vector< vector <string> > &values, string folderPath)
+{
+	string word;
+	const string N0_VALUES = "NO_VALUES";
+	vector <string> dependenciesVector;
+	bool moreValues = false;
+
+	ifstream dependenciesFile(depPath, ifstream::in);
+
+
+	if (dependenciesFile.is_open())
+	{
+		while (dependenciesFile >> word)
+		{
+			//check for first value
+			if (word[0] == '[' && word[1] != ']')
+			{
+				string depToAdd = trimValue(word, 2);
+				dependenciesVector.push_back(depToAdd);
+
+				if (word[(depToAdd.size() + 3)] != ']')
+				{
+					moreValues = true;
+				}
+				else
+				{
+					moreValues = false;
+					continue;
+				}
+			}
+			//check if there are more than 1 value
+			else if (moreValues)
+			{
+				string depToAdd = trimValue(word, 1);
+				dependenciesVector.push_back(depToAdd);
+				if (word[(depToAdd.size() + 2)] != ']')
+				{
+					moreValues = true;
+				}
+				else
+				{
+					moreValues = false;
+					continue;
+				}
+			}
+			//check if there are no values
+			else if (word[0] == '[' && word[1] == ']')
+			{
+				dependenciesVector.push_back(N0_VALUES);
+			}
+		}
+	}
+	else
+	{
+		cout << "Unable to open dependencies file." << endl;
+		return false;
+	}
+	//dependenciesFile.close();
+	
+	for (size_t i = 0; i < dependenciesVector.size(); i++)
+	{
+		installDependencies(keys, values, dependenciesVector[i], folderPath);
+	}
+	cout << endl << "All done." << endl;
+}
