@@ -1,0 +1,407 @@
+#include<iostream>
+#include<string>
+#include<vector>
+
+using namespace std;
+
+class Table
+{
+	int rows, columns;
+	vector< vector<char> > table;
+public:
+	Table() : rows(0), columns(0) {}
+	Table(int _rows, int _columns) : rows(_rows), columns(_columns), table(rows, vector<char>(columns, '0')) {}
+
+	int getRows()const
+	{
+		return rows;
+	}
+	int getColumns()const
+	{
+		return columns;
+	}
+	char getAtPosition(int i, int j)
+	{
+		return table[i][j];
+	}
+
+	void fillTable()
+	{
+		for (size_t i = 0; i < rows; i++)
+		{
+			for (size_t j = 0; j < columns; j++)
+			{
+				cin >> table[i][j];
+			}
+		}
+	}
+
+	void printTable()const
+	{
+		for (size_t i = 0; i < rows; i++)
+		{
+			for (size_t j = 0; j < columns; j++)
+			{
+				cout << table[i][j] << ' ';
+			}
+			cout << endl;
+		}
+	}
+};
+
+bool isPalindrome(string);
+int checkTable(Table, string, int, int);
+
+//rows - left to right
+bool checkRowToRight(Table, string, int, int);
+//rows - right to left
+bool checkRowToLeft(Table, string, int, int);
+//columns - up to down
+bool checkColumnDown(Table, string, int, int);
+//columns - down to up
+bool checkColumnUp(Table, string, int, int);
+//diagonal  from up to down, from left to right
+bool checkDiagonal(Table, string, int, int);
+//diagonal - from down to up, from right to left
+bool checkDiagonal2(Table, string, int, int);
+//inverse diagonal - from down to up, from left to right
+bool checkInverseDiagonal(Table, string, int, int);
+//inverse diagonal - from up to down, from right to left
+bool checkInverseDiagonal2(Table, string, int, int);
+
+
+int main()
+{
+	string word;
+	int rows, columns;
+
+	cout << "Word: ";
+	cin >> word;
+	cout << "Rows:";
+	cin >> rows;
+	cout << "Columns:";
+	cin >> columns;
+
+	Table t1(rows, columns);
+	cout << "Fill the table: " << endl;
+	t1.fillTable();
+	cout << endl;
+	t1.printTable();
+	cout << endl;
+
+	cout << checkTable(t1, word, t1.getRows(), t1.getColumns()) << endl;
+	system("pause");
+	return 0;
+}
+
+bool isPalindrome(string word)
+{
+	int i = 0;
+	int j = word.size() - 1;
+	while (i < j)
+	{
+		if (word[i] != word[j])
+		{
+			return false;
+		}
+		else
+		{
+			i++;
+			j--;
+		}
+	}
+	return true;
+}
+int checkTable(Table table, string word, int rows, int columns)
+{
+	int wordCount = 0;
+	if (isPalindrome(word))
+	{
+		for (int i = 0; i < rows; i++)
+		{
+			for (int j = 0; j < columns; j++)
+			{
+				if (table.getAtPosition(i, j) == word[0])
+				{
+					//row
+					if (checkRowToRight(table, word, i, j))
+					{
+						wordCount++;
+					}
+					//column
+					if (checkColumnDown(table, word, i, j))
+					{
+						wordCount++;
+					}
+					//diagonal
+					if (checkDiagonal(table, word, i, j))
+					{
+						wordCount++;
+					}
+					//inverse diagonal
+					if (checkInverseDiagonal(table, word, i, j))
+					{
+						wordCount++;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < rows; i++)
+		{
+			for (int j = 0; j < columns; j++)
+			{
+				if (table.getAtPosition(i, j) == word[0])
+				{
+					//rows
+					if (checkRowToRight(table, word, i, j))
+					{
+						wordCount++;
+					}
+					if (checkRowToLeft(table, word, i, j))
+					{
+						wordCount++;
+					}
+					//columns
+					if (checkColumnDown(table, word, i, j))
+					{
+						wordCount++;
+					}
+					if (checkColumnUp(table, word, i, j))
+					{
+						wordCount++;
+					}
+					//diagonals
+					if (checkDiagonal(table, word, i, j))
+					{
+						wordCount++;
+					}
+					if (checkDiagonal2(table, word, i, j))
+					{
+						wordCount++;
+					}
+					//inverse diagonals
+					if (checkInverseDiagonal(table, word, i, j))
+					{
+						wordCount++;
+					}
+					if (checkInverseDiagonal2(table, word, i, j))
+					{
+						wordCount++;
+					}
+					
+				}
+			}
+		}
+	}
+	return wordCount;
+}
+//rows - left to right
+bool checkRowToRight(Table table, string word, int startI, int startJ)
+{
+	if (startJ + word.length() - 1 < table.getColumns())
+	{
+		bool flag = true;
+		size_t wordIndex = 0;
+		for (int j = startJ; j < startJ + word.length(); j++)
+		{
+			if (table.getAtPosition(startI, j) != word[wordIndex])
+			{
+				flag = false;
+				break;
+			}
+			wordIndex++;
+		}
+		return flag;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+//rows - right to left
+bool checkRowToLeft(Table table, string word, int startI, int startJ)
+{
+	if (startJ - (int)word.length() + 1 >= 0)
+	{
+		bool flag = true;
+		size_t wordIndex = 0;
+		for (int j = startJ; j >= startJ - (int)word.length() + 1; j--)
+		{
+			if (table.getAtPosition(startI, j) != word[wordIndex])
+			{
+				flag = false;
+				break;
+			}
+			wordIndex++;
+		}
+		return flag;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+//columns - up to down
+bool checkColumnDown(Table table, string word, int startI, int startJ)
+{
+	if (startI + word.length() - 1 < table.getRows())
+	{
+		bool flag = true;
+		size_t wordIndex = 0;
+		for (int i = startI; i < startI + word.length(); i++)
+		{
+			if (table.getAtPosition(i, startJ) != word[wordIndex])
+			{
+				flag = false;
+				break;
+			}
+			wordIndex++;
+		}
+		return flag;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+//columns - down to up
+bool checkColumnUp(Table table, string word, int startI, int startJ)
+{
+	if (startI - (int)word.length() + 1 >= 0)
+	{
+		bool flag = true;
+		size_t wordIndex = 0;
+		for (int i = startI; i >= startI - (int)word.length() + 1; i--)
+		{
+			if (table.getAtPosition(i, startJ) != word[wordIndex])
+			{
+				flag = false;
+				break;
+			}
+			wordIndex++;
+		}
+		return flag;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+//diagonal  from up to down, from left to right
+bool checkDiagonal(Table table, string word, int startI, int startJ)
+{
+	if (startI + word.length() <= table.getRows() && startJ + word.length() <= table.getColumns())
+	{
+		bool flag = true;
+		size_t wordIndex = 0;
+		int i = startI;
+		int j = startJ;
+		while (i < startI + word.length() && j < startJ + word.length())
+		{
+			if (table.getAtPosition(i, j) != word[wordIndex])
+			{
+				flag = false;
+				break;
+			}
+			i++;
+			j++;
+			wordIndex++;
+		}
+		return flag;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+//diagonal - from down to up, from right to left
+bool checkDiagonal2(Table table, string word, int startI, int startJ)
+{
+	if (startI - (int)word.length() + 1 >= 0 && startJ - (int)word.length() + 1 >= 0)
+	{
+		bool flag = true;
+		size_t wordIndex = 0;
+		int i = startI;
+		int j = startJ;
+		while (i > startI - (int)word.length() && j >= startJ - (int)word.length() + 1)
+		{
+			if (table.getAtPosition(i, j) != word[wordIndex])
+			{
+				flag = false;
+				break;
+			}
+			i--;
+			j--;
+			wordIndex++;
+		}
+		return flag;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+//inverse diagonal - from down to up, from left to right
+bool checkInverseDiagonal(Table table, string word, int startI, int startJ)
+{
+	if (startI - (int)word.length() + 1 >= 0 && startJ + word.length() <= table.getColumns())
+	{
+		bool flag = true;
+		size_t wordIndex = 0;
+		int i = startI;
+		int j = startJ;
+		while (i > startI - (int)word.length() && j < startJ + word.length())
+		{
+			if (table.getAtPosition(i, j) != word[wordIndex])
+			{
+				flag = false;
+				break;
+			}
+			i--;
+			j++;
+			wordIndex++;
+		}
+		return flag;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+////inverse diagonal - from up to down, from right to left
+bool checkInverseDiagonal2(Table table, string word, int startI, int startJ)
+{
+	if (startI + word.length() - 1 < table.getRows() && startJ - (int)word.length() + 1 >= 0)
+	{
+		bool flag = true;
+		size_t wordIndex = 0;
+		int i = startI;
+		int j = startJ;
+		while (i < startI + word.length() && j >= startJ - (int)word.length() + 1)
+		{
+			if (table.getAtPosition(i, j) != word[wordIndex])
+			{
+				flag = false;
+				break;
+			}
+			i++;
+			j--;
+			wordIndex++;
+		}
+		return flag;
+	}
+	else
+	{
+		return 0;
+	}
+}
