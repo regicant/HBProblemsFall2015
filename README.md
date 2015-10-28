@@ -1,1 +1,1 @@
-# HBProblemsFall2015
+All the HackBulgaria application problems written in C++.
