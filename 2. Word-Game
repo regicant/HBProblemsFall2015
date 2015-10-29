@@ -20,7 +20,7 @@ public:
 	{
 		return columns;
 	}
-	char getAtPosition(int i, int j)
+	char getAtPosition(int i, int j)const
 	{
 		return table[i][j];
 	}
