@@ -37,7 +37,6 @@ int main()
 	}
 
 	cout << "(" << pointX << ", " << pointY << ")" << endl;
-	system("pause");
 	return 0;
 }
 
