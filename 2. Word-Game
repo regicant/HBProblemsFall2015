@@ -90,7 +90,6 @@ int main()
 	cout << endl;
 
 	cout << checkTable(t1, word, t1.getRows(), t1.getColumns()) << endl;
-	system("pause");
 	return 0;
 }
 
