@@ -33,8 +33,6 @@ int main()
 	string dependenciesPath = folderPath + "\\dependencies.json";
 
 	openDependencies(dependenciesPath, keys, values, folderPath);
-
-	system("pause");
 	return 0;
 }
 
